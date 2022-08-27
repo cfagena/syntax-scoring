@@ -4,6 +4,8 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import java.lang.Exception
 import java.util.EmptyStackException
 import java.util.Stack
@@ -21,22 +23,27 @@ class MainViewModel : ViewModel() {
         _input.value = value
     }
 
-    fun process() {
+    fun process(): Flow<String> {
         val subsystem = input.value
         var score = 0
 
-        subsystem?.let {
-            if (it.isNotBlank()) {
-                it.lines().forEachIndexed { index, line ->
-                    Log.d(TAG, "line $index: $line")
-                    val lineResult = processLine(line, index)
-                    if (LineResult.CORRUPTED == lineResult.first) {
-                        score += lineResult.second
+        return flow {
+            subsystem?.let {
+                if (it.isNotBlank()) {
+                    it.lines().forEachIndexed { index, line ->
+                        emit("Processing line: $index")
+
+                        val lineResult = processLine(line, index)
+                        emit("Line $index is ${lineResult.first}")
+
+                        if (LineResult.CORRUPTED == lineResult.first) {
+                            score += lineResult.second
+                        }
                     }
                 }
             }
+            emit("Total syntax error score: $score")
         }
-        Log.d(TAG, "Total syntax error score: $score")
     }
 
     private fun processLine(line: String, lineIndex: Int): Pair<LineResult, Int> {
@@ -58,9 +65,7 @@ class MainViewModel : ViewModel() {
                     // on the stack
                     try {
                         val poppedChar = lineStack.pop()
-                        if (matchToOpeningCharacter(poppedChar, character)) {
-                            Log.d(TAG, "Matching characters: $poppedChar $character")
-                        } else {
+                        if (notMatchToOpeningCharacter(poppedChar, character)) {
                             Log.d(
                                 TAG,
                                 "Corrupted line. Expected ${closingCharacter(poppedChar)}, " +
@@ -100,8 +105,8 @@ class MainViewModel : ViewModel() {
         }
     }
 
-    private fun matchToOpeningCharacter(openingCharacter: Char, closingCharacter: Char): Boolean {
-        return closingCharacter(openingCharacter) == closingCharacter
+    private fun notMatchToOpeningCharacter(openingCharacter: Char, closingCharacter: Char): Boolean {
+        return closingCharacter(openingCharacter) != closingCharacter
     }
 
     private fun closingCharacter(openingCharacter: Char): Char {

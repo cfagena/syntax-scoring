@@ -1,22 +1,20 @@
 package com.agena.android.syntaxscoring.ui
 
 import android.os.Bundle
-import androidx.activity.viewModels
+import android.text.TextUtils
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.agena.android.syntaxscoring.MainViewModel
+import com.agena.android.syntaxscoring.R
+import com.agena.android.syntaxscoring.Stage
 import com.agena.android.syntaxscoring.databinding.ActivityMainBinding
+import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.io.IOException
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
-    private val viewModel: MainViewModel by viewModels()
-
-    private val input by lazy {
-        readFromAsset()
-    }
+    private val mainViewModel: MainViewModel by viewModel()
 
     private val listAdapter by lazy {
         LineResultAdapter()
@@ -29,7 +27,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(view)
 
         setOnClickAction()
-        setExampleInput()
+        setObservers()
         setupRecyclerView()
     }
 
@@ -40,23 +38,66 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun setExampleInput() {
-        binding.inputTextview.text = input
-        viewModel.input = input
-    }
+    private fun setObservers() {
+        mainViewModel.stage.observe(this) { stage ->
+            stage?.let {
+                setButtons(stage)
+                setInputData(stage)
+                binding.stageTextview.text = resources.getString(R.string.stage, it)
+            }
+        }
 
-    private fun setOnClickAction() {
-        binding.processButton.setOnClickListener {
-            lifecycleScope.launchWhenStarted {
-                viewModel.process().collect {
-                    listAdapter.addLine(it)
-                    binding.resultRecyclerview.smoothScrollToPosition(listAdapter.itemCount - 1)
-                }
+        mainViewModel.inputData.observe(this) {
+            if (!it.isNullOrEmpty())
+                binding.inputTextview.text = TextUtils.join("\n", it)
+        }
+
+        mainViewModel.score.observe(this) {
+            it?.let {
+                binding.scoreTextview.text = resources.getString(R.string.score, it)
             }
         }
     }
 
-    private fun readFromAsset(): String {
+    private fun setButtons(stage: Stage) {
+        when (stage) {
+            Stage.START -> {
+                binding.processPart1Button.isEnabled = true
+                binding.processPart2Button.isEnabled = false
+            }
+            Stage.CORRUPTED_LINES_REMOVED -> {
+                binding.processPart1Button.isEnabled = false
+                binding.processPart2Button.isEnabled = true
+            }
+            Stage.ALL_LINES_COMPLETED -> {
+                binding.processPart1Button.isEnabled = false
+                binding.processPart2Button.isEnabled = false
+            }
+        }
+    }
+
+    private fun setInputData(stage: Stage) {
+        if (Stage.START == stage) {
+            mainViewModel.setInputData(fetchFromAsset())
+        }
+    }
+
+    private fun setOnClickAction() {
+        binding.processPart1Button.setOnClickListener {
+            mainViewModel.removeCorruptedLines()
+        }
+
+        binding.processPart2Button.setOnClickListener {
+            mainViewModel.completeUncompletedLines()
+        }
+
+        binding.resetButton.setOnClickListener {
+            mainViewModel.reset()
+            mainViewModel.setInputData(fetchFromAsset())
+        }
+    }
+
+    private fun fetchFromAsset(): String {
         var string = ""
         try {
             val inputStream = assets.open("input.txt")

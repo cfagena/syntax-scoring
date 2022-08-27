@@ -1,4 +1,4 @@
-package com.agena.android.syntaxscoring
+package com.agena.android.syntaxscoring.ui
 
 import android.view.LayoutInflater
 import android.view.ViewGroup

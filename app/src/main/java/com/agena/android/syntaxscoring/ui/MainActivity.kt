@@ -1,10 +1,11 @@
-package com.agena.android.syntaxscoring
+package com.agena.android.syntaxscoring.ui
 
 import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.agena.android.syntaxscoring.MainViewModel
 import com.agena.android.syntaxscoring.databinding.ActivityMainBinding
 import java.io.IOException
 
@@ -27,7 +28,6 @@ class MainActivity : AppCompatActivity() {
         val view = binding.root
         setContentView(view)
 
-        setObservers()
         setOnClickAction()
         setExampleInput()
         setupRecyclerView()
@@ -40,16 +40,9 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun setObservers() {
-        viewModel.input.observe(this) { input ->
-            input?.let {
-                binding.inputTextview.text = it
-            }
-        }
-    }
-
     private fun setExampleInput() {
-        viewModel.setInput(input)
+        binding.inputTextview.text = input
+        viewModel.input = input
     }
 
     private fun setOnClickAction() {
@@ -57,6 +50,7 @@ class MainActivity : AppCompatActivity() {
             lifecycleScope.launchWhenStarted {
                 viewModel.process().collect {
                     listAdapter.addLine(it)
+                    binding.resultRecyclerview.smoothScrollToPosition(listAdapter.itemCount - 1)
                 }
             }
         }

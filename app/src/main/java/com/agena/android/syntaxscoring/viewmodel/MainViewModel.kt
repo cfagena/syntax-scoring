@@ -1,9 +1,10 @@
 package com.agena.android.syntaxscoring
 
 import android.util.Log
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.agena.android.syntaxscoring.entity.CharacterType
+import com.agena.android.syntaxscoring.entity.LineInfo
+import com.agena.android.syntaxscoring.entity.LineResult
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import java.lang.Exception
@@ -16,28 +17,24 @@ class MainViewModel : ViewModel() {
         private const val TAG: String = "MainViewModel"
     }
 
-    private val _input = MutableLiveData("")
-    val input: LiveData<String> = _input
-
-    fun setInput(value: String) {
-        _input.value = value
-    }
+    var input: String = ""
 
     fun process(): Flow<String> {
-        val subsystem = input.value
+        val subsystem = input
         var score = 0
 
         return flow {
-            subsystem?.let {
+            subsystem.let {
                 if (it.isNotBlank()) {
                     it.lines().forEachIndexed { index, line ->
                         emit("Processing line: $index")
 
                         val lineResult = processLine(line, index)
-                        emit("Line $index is ${lineResult.first}")
+                        emit("Line $index is ${lineResult.result}")
 
-                        if (LineResult.CORRUPTED == lineResult.first) {
-                            score += lineResult.second
+                        if (LineResult.CORRUPTED == lineResult.result) {
+                            score += lineResult.score
+                            emit(lineResult.remark ?: "")
                         }
                     }
                 }
@@ -46,9 +43,9 @@ class MainViewModel : ViewModel() {
         }
     }
 
-    private fun processLine(line: String, lineIndex: Int): Pair<LineResult, Int> {
+    private fun processLine(line: String, lineIndex: Int): LineInfo {
         if (line.isBlank())
-            return Pair(LineResult.COMPLETE, 0)
+            return LineInfo(LineResult.COMPLETE, 0)
 
         // Stack data structure (LIFO) to store the opening characters
         val lineStack = Stack<Char>()
@@ -61,24 +58,26 @@ class MainViewModel : ViewModel() {
                 }
 
                 CharacterType.CLOSING -> {
-                    // If it is a closing character check if it matches if last pushed character
+                    // If it is a closing character check if it matches the last pushed character
                     // on the stack
                     try {
                         val poppedChar = lineStack.pop()
                         if (notMatchToOpeningCharacter(poppedChar, character)) {
-                            Log.d(
-                                TAG,
-                                "Corrupted line. Expected ${closingCharacter(poppedChar)}, " +
-                                    "but found $character instead at $lineIndex:$charIndex"
+                            val message = "Corrupted line. Expected " +
+                                "${closingCharacter(poppedChar)}, " +
+                                "but found $character instead at $lineIndex:$charIndex"
+
+                            return LineInfo(
+                                LineResult.CORRUPTED, getPointsForCharacter(character), message
                             )
-                            return Pair(LineResult.CORRUPTED, getPointsForCharacter(character))
                         }
                     } catch (e: EmptyStackException) {
-                        Log.d(
-                            TAG,
-                            "No opening character for: [$character, $lineIndex:$charIndex]"
+                        val message = "No opening character for: " +
+                            "[$character, $lineIndex:$charIndex]"
+                        return LineInfo(
+                            LineResult.CORRUPTED, getPointsForCharacter(character),
+                            message
                         )
-                        return Pair(LineResult.CORRUPTED, getPointsForCharacter(character))
                     }
                 }
 
@@ -92,9 +91,9 @@ class MainViewModel : ViewModel() {
             }
         }
         if (!lineStack.empty())
-            Pair(LineResult.INCOMPLETE, 0)
+            return LineInfo(LineResult.INCOMPLETE, 0)
 
-        return Pair(LineResult.COMPLETE, 0)
+        return LineInfo(LineResult.COMPLETE, 0)
     }
 
     private fun classifyCharacter(character: Char): CharacterType {
@@ -128,16 +127,4 @@ class MainViewModel : ViewModel() {
             else -> throw Exception("Invalid State, this character should not be here")
         }
     }
-}
-
-enum class LineResult {
-    CORRUPTED,
-    INCOMPLETE,
-    COMPLETE
-}
-
-enum class CharacterType {
-    OPENING,
-    CLOSING,
-    INVALID
 }

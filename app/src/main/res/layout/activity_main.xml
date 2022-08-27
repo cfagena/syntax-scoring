@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity">
+    tools:context=".ui.MainActivity">
 
     <HorizontalScrollView
         android:id="@+id/horizontal_scrollview"
@@ -19,7 +19,7 @@
             android:id="@+id/vertical_scrollview"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_margin="20dp"
+            android:layout_margin="@dimen/margin"
             android:orientation="vertical">
 
             <androidx.appcompat.widget.AppCompatTextView
@@ -36,7 +36,7 @@
         android:id="@+id/process_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="20dp"
+        android:layout_margin="@dimen/margin"
         app:layout_constraintTop_toBottomOf="@id/horizontal_scrollview"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -47,7 +47,7 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:overScrollMode="never"
-        android:layout_margin="20dp"
+        android:layout_margin="@dimen/margin"
         app:layout_constraintTop_toBottomOf="@id/process_button"
         app:layout_constraintBottom_toBottomOf="parent"/>
 

@@ -33,25 +33,14 @@
     </HorizontalScrollView>
 
     processPart2Button<androidx.appcompat.widget.AppCompatButton
-        android:id="@+id/process_part1_button"
+        android:id="@+id/process_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/margin"
         app:layout_constraintTop_toBottomOf="@id/horizontal_scrollview"
-        app:layout_constraintEnd_toStartOf="@id/process_part2_button"
         app:layout_constraintStart_toStartOf="parent"
-        android:text="@string/process1" />
-
-    <androidx.appcompat.widget.AppCompatButton
-        android:id="@+id/process_part2_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/margin"
-        app:layout_constraintTop_toBottomOf="@id/horizontal_scrollview"
-        app:layout_constraintEnd_toStartOf="@id/reset_button"
-        app:layout_constraintStart_toEndOf="@id/process_part1_button"
-        app:layout_constraintVertical_chainStyle="packed"
-        android:text="@string/process2" />
+    app:layout_constraintEnd_toStartOf="@id/reset_button"
+        android:text="@string/process" />
 
     <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/reset_button"
@@ -60,7 +49,7 @@
         android:layout_marginTop="@dimen/margin"
         app:layout_constraintTop_toBottomOf="@id/horizontal_scrollview"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/process_part2_button"
+        app:layout_constraintStart_toEndOf="@id/process_button"
         app:layout_constraintVertical_chainStyle="packed"
         android:text="@string/reset" />
 
@@ -69,28 +58,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/margin"
-        app:layout_constraintTop_toBottomOf="@id/process_part1_button"
+        app:layout_constraintTop_toBottomOf="@id/process_button"
         app:layout_constraintStart_toStartOf="parent"
         android:textSize="16sp"
         tools:text="Score: 197864" />
-
-    <androidx.appcompat.widget.AppCompatTextView
-        android:id="@+id/stage_textview"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="@dimen/margin"
-        app:layout_constraintTop_toBottomOf="@id/score_textview"
-        app:layout_constraintStart_toStartOf="parent"
-        android:textSize="16sp"
-        tools:text="Stage: START" />
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/result_recyclerview"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:overScrollMode="never"
-        android:layout_margin="@dimen/margin"
-        app:layout_constraintTop_toBottomOf="@id/stage_textview"
-        app:layout_constraintBottom_toBottomOf="parent"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
